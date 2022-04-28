@@ -1,0 +1,7 @@
+{
+  "name": "celsius-frontend",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular"
+}
