@@ -1,0 +1,36 @@
+<ion-header [translucent]="true">
+  <ion-toolbar>
+    <ion-title>
+      <div class="title">
+        Celsi<ion-text color="primary">U</ion-text
+        ><ion-text color="secondary">S</ion-text>
+      </div>
+    </ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content [fullscreen]="true">
+  <ion-header collapse="condense">
+    <ion-toolbar>
+      <ion-title size="large">
+        Celsi<ion-text color="primary">U</ion-text
+        ><ion-text color="secondary">S</ion-text>
+      </ion-title>
+    </ion-toolbar>
+  </ion-header>
+
+  <div class="flexbox">
+    <ion-list class="list">
+      <ion-list-header
+        >My&nbsp;<ion-text color="primary">home</ion-text></ion-list-header
+      >
+      <ion-item *ngFor="let option of options; let i = index">
+        <ion-label>{{option.name}}</ion-label>
+        <ion-checkbox
+          [color]="i % 2 == 0 ? 'primary' : 'secondary'"
+          [checked]="option.checked"
+          slot="start"
+        ></ion-checkbox> </ion-item
+    ></ion-list>
+  </div>
+</ion-content>
