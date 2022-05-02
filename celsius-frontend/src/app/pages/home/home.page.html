@@ -20,17 +20,19 @@
   </ion-header>
 
   <div class="flexbox">
-    <ion-list class="list">
-      <ion-list-header
-        >My&nbsp;<ion-text color="primary">home</ion-text></ion-list-header
-      >
-      <ion-item *ngFor="let option of options; let i = index">
-        <ion-label>{{option.name}}</ion-label>
-        <ion-checkbox
-          [color]="i % 2 == 0 ? 'primary' : 'secondary'"
-          [checked]="option.checked"
-          slot="start"
-        ></ion-checkbox> </ion-item
-    ></ion-list>
+    <form [formGroup]="optionsForm" *ngIf="optionsForm">
+      <ion-list class="list">
+        <ion-list-header
+          >My&nbsp;<ion-text color="primary">home</ion-text></ion-list-header
+        >
+        <ion-item *ngFor="let option of options; let i = index">
+          <ion-label>{{option.name}}</ion-label>
+          <ion-checkbox
+            [color]="i % 2 == 0 ? 'primary' : 'secondary'"
+            [formControlName]="option.id"
+            slot="start"
+          ></ion-checkbox> </ion-item
+      ></ion-list>
+    </form>
   </div>
 </ion-content>
