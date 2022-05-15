@@ -1,4 +1,4 @@
-Temperature,Predicted Temperature,People home,Ura,Vlaznost,Warm Day,Warm Night,Window open,Decision
+Temperature,Predicted Temperature +1h,People home,Ura,Vlaznost,Warm Day,Warm Night,Window open,Decision
 16,14,YES,0:00,93%,NO,NO,YES,NO
 15,14,NO,1:00,95%,NO,YES,NO,YES
 14,13,YES,2:00,98%,YES,NO,NO,NO
