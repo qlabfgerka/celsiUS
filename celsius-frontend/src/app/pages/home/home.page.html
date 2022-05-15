@@ -34,5 +34,16 @@
           ></ion-checkbox> </ion-item
       ></ion-list>
     </form>
+
+    <div class="break"></div>
+
+    <div>
+      <h1>
+        Your heating is currently <br />
+        <ion-text [color]="decision === 'ON' ? 'primary' : 'secondary'"
+          >{{decision}}</ion-text
+        >.
+      </h1>
+    </div>
   </div>
 </ion-content>

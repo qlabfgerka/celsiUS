@@ -1,8 +1,15 @@
 .flexbox {
   display: flex;
   margin: 1rem;
+  flex-wrap: wrap;
 }
 
 .list {
   width: 100%;
+}
+
+.break {
+  height: 0;
+  flex-basis: 100%;
+  margin-bottom: 10px;
 }

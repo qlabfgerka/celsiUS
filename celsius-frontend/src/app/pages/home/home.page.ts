@@ -7,6 +7,7 @@ import {
   Validators,
 } from '@angular/forms';
 import { OptionsDTO } from 'src/app/models/options/options.model';
+import { StorageService } from 'src/app/services/storage/storage.service';
 
 @Component({
   selector: 'app-home',
@@ -17,13 +18,18 @@ export class HomePage implements OnInit {
   public optionsForm: FormGroup;
   public options: Array<OptionsDTO>;
   public timeout: any;
+  public decision: string = 'OFF';
 
   private readonly TIMEOUT_LENGTH = 5000;
+  private readonly LS_OPTS = 'LS_OPTS';
 
-  constructor(private readonly formBuilder: FormBuilder) {}
+  constructor(
+    private readonly formBuilder: FormBuilder,
+    private readonly storageService: StorageService
+  ) {}
 
-  ngOnInit(): void {
-    this.refreshOptions();
+  async ngOnInit(): Promise<void> {
+    await this.refreshOptions();
     this.initForm();
   }
 
@@ -42,29 +48,35 @@ export class HomePage implements OnInit {
     this.detectChanges();
   }
 
-  private refreshOptions(): void {
-    this.options = [
-      { name: 'Window opened', checked: true, id: 'WOPN' },
-      { name: 'People at home', checked: true, id: 'PATH' },
-      { name: 'Option 3', checked: true, id: 'OPT3' },
-      { name: 'Option 4', checked: true, id: 'OPT4' },
-      { name: 'Option 5', checked: false, id: 'OPT5' },
-    ];
+  private async refreshOptions(): Promise<void> {
+    this.options = JSON.parse(await this.storageService.get(this.LS_OPTS));
+    if (!this.options) {
+      this.options = [
+        { name: 'Day heating preference', checked: false, id: 'DHP' },
+        { name: 'Night heating preference', checked: false, id: 'NHP' },
+      ];
+      this.saveOptions();
+    }
   }
 
-  private detectChanges(): void {
-    this.optionsForm.valueChanges.subscribe((changes) => {
+  private async detectChanges(): Promise<void> {
+    this.optionsForm.valueChanges.subscribe(async (changes) => {
       if (this.timeout) clearTimeout(this.timeout);
 
-      this.timeout = setTimeout(() => {
-        for (const key in changes) {
-          this.options.find((option: OptionsDTO) => option.id === key).checked =
-            changes[key];
-        }
+      for (const key in changes) {
+        this.options.find((option: OptionsDTO) => option.id === key).checked =
+          changes[key];
+      }
+      await this.saveOptions();
 
+      this.timeout = setTimeout(() => {
         //POST options to backend
         this.initForm();
       }, this.TIMEOUT_LENGTH);
     });
+  }
+
+  private async saveOptions(): Promise<void> {
+    await this.storageService.set(this.LS_OPTS, JSON.stringify(this.options));
   }
 }
