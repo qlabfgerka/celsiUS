@@ -1,8 +1,9 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS, cross_origin
-import decisiontree
+#import decisiontree
 from datetime import datetime, timedelta
 import pandas as pd
+import requests
 
 app = Flask(__name__)
 CORS(app, support_credentials=True)
@@ -25,6 +26,13 @@ def predict():
     current_time = now.strftime("%H:%M")
     print("args", args)
 
+    response = requests.get('http://api.weatherapi.com/v1/history.json?key=1874708dfaad4509b83165632221705&q=Ljubljana&dt=%s' % (datetime.now() - timedelta(days = 1)).strftime("%Y-%m-%d")).json()
+
+    temperatures = response["forecast"]["forecastday"][0]["hour"]
+
+    result = list(map(lambda x: x["temp_c"], temperatures))
+
+    print(result)
 
     #make call to temp prediction
 
@@ -39,6 +47,8 @@ def predict():
                         'Window open': args.get("windowOpen")})
 
     print("data:", data)
+
+    
 
     return jsonify({'decision': decisiontree.predict(data)})
 
