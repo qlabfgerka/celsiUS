@@ -1,5 +1,4 @@
 import pandas as pd
-from matplotlib import pyplot as plt
 from sklearn.linear_model import Ridge
 from sklearn.metrics import mean_absolute_error
 import numpy as np
@@ -60,19 +59,15 @@ def neuralnetwork():
     regressor.add(Dropout(0.2))
     regressor.add(Dense(units=n_future, activation='linear'))
     regressor.compile(optimizer='adam', loss='mean_squared_error', metrics=['acc'])
-    regressor.fit(x_train, y_train, epochs=5, batch_size=32)
-    filename = 'finalized_model.sav'
-    pickle.dump(model, open(filename, 'wb'))
+    regressor.fit(x_train, y_train, epochs=1, batch_size=32)
+    return (regressor, sc)
 
 
 #now the test dataset
-def predict(previous_16_h):
-
-    regressor= pickle.load(open('finalized_model.sav', 'rb'))
-    
+def predict(regressor, sc, previous_16_h):
     testdata = previous_16_h
     testdata = testdata.reshape(-1, 1)
-
+    
     testing = sc.transform(testdata)
     testing = np.array(testing)
     testing = np.reshape(testing, (testing.shape[1], testing.shape[0], 1))
@@ -83,6 +78,6 @@ def predict(previous_16_h):
 
     print("predicted temp\n")
     print(predicted_temperature)
-    return predicted_temperature
+    return predicted_temperature[0]
 
 

@@ -5,6 +5,7 @@ from datetime import datetime, timedelta
 import pandas as pd
 import requests
 import model
+import numpy as np
 
 
 
@@ -13,9 +14,9 @@ import model
 app = Flask(__name__)
 CORS(app, support_credentials=True)
 
-#$bigBrain = 
+bigBrain = None
+bigSc = None
 
-# temperature = current temperature
 # humidity = current humidity
 # people = people home (YES/NO)
 # warmDay = YES/NO
@@ -24,6 +25,18 @@ CORS(app, support_credentials=True)
 
 def ceil_dt(dt, delta):
     return dt + (datetime.min - dt) % delta
+
+
+@app.before_first_request
+def activate_job():
+    print("before")
+    (b, s) = model.neuralnetwork()
+    global bigBrain
+    global bigSc
+    bigBrain = b
+    bigSc = s
+
+
 
 @app.route('/predict', methods=['GET'])
 @cross_origin(supports_credentials=True)
@@ -42,14 +55,13 @@ def predict():
     print(result)
 
     #make call to temp prediction
-    predictedTemp = model.predict(model.neuralnetwork(), result)
+    predictedTemp = model.predict(bigBrain, bigSc, np.array(result))
 
     print(result)
     print(predictedTemp)
 
     # make obj
-    data = pd.DataFrame(index=pd.Index([1]), data = {'Temperature': 15,
-                        'Predicted Temperature +1h': predictedTemp,
+    data = pd.DataFrame(index=pd.Index([1]), data = {'Temperature': predictedTemp,
                         'People home': args.get("people"),
                         'Ura': current_time,
                         'Vlaznost': args.get("humidity"),
@@ -60,9 +72,9 @@ def predict():
     print("data:", data)
 
     
-    return "";
-    #return jsonify({'decision': decisiontree.predict(data)})
+
+    return jsonify({'decision': decisiontree.predict(data)})
 
 
-if __name__ =='__main__':  
+if __name__ =='__main__':
     app.run(debug = True)  
