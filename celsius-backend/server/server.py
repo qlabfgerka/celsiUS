@@ -4,9 +4,16 @@ from flask_cors import CORS, cross_origin
 from datetime import datetime, timedelta
 import pandas as pd
 import requests
+import model
+
+
+
+
 
 app = Flask(__name__)
 CORS(app, support_credentials=True)
+
+#$bigBrain = 
 
 # temperature = current temperature
 # humidity = current humidity
@@ -30,15 +37,19 @@ def predict():
 
     temperatures = response["forecast"]["forecastday"][0]["hour"]
 
-    result = list(map(lambda x: x["temp_c"], temperatures))
+    result = list(map(lambda x: x["temp_c"], temperatures))[:16]
 
     print(result)
 
     #make call to temp prediction
+    predictedTemp = model.predict(model.neuralnetwork(), result)
+
+    print(result)
+    print(predictedTemp)
 
     # make obj
-    data = pd.DataFrame(index=pd.Index([1]), data = {'Temperature': float(args.get("temperature")),
-                        'Predicted Temperature +1h': 15,
+    data = pd.DataFrame(index=pd.Index([1]), data = {'Temperature': 15,
+                        'Predicted Temperature +1h': predictedTemp,
                         'People home': args.get("people"),
                         'Ura': current_time,
                         'Vlaznost': args.get("humidity"),
@@ -49,8 +60,8 @@ def predict():
     print("data:", data)
 
     
-
-    return jsonify({'decision': decisiontree.predict(data)})
+    return "";
+    #return jsonify({'decision': decisiontree.predict(data)})
 
 
 if __name__ =='__main__':  
