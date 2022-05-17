@@ -40,9 +40,12 @@
     <div>
       <h1>
         Your heating is currently <br />
-        <ion-text [color]="decision === 'ON' ? 'primary' : 'secondary'"
-          >{{decision}}</ion-text
-        >.
+        <ion-text
+          *ngIf="!isLoading"
+          [color]="decision.decision === 'YES' ? 'primary' : 'secondary'"
+          >{{decision.decision === 'YES' ? 'ON' : 'OFF' }}</ion-text
+        >
+        <ion-text *ngIf="isLoading">...</ion-text>
       </h1>
     </div>
   </div>
