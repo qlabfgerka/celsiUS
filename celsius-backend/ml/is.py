@@ -1,11 +1,34 @@
 import pandas as pd
+from matplotlib import pyplot as plt
 from sklearn.linear_model import Ridge
 from sklearn.metrics import mean_absolute_error
 import numpy as np
 from keras.models import Sequential
 from keras.layers import LSTM, Dense, Dropout, Bidirectional
 from sklearn.preprocessing import MinMaxScaler
+from sklearn.metrics import r2_score
+import pickle
 
+def showData(history):
+    print(f"model hist is : \n {history.history}")
+
+    plt.subplot(2, 1, 1)
+    plt.title("Accuracy/Loss")
+    plt.plot(history.history['acc'], label="Test Accuracy")
+    #plt.plot(testHistoryAccuracy, label="Train Accuracy")
+    plt.legend(loc='lower right')
+    plt.ylim([0, 1.0])
+
+    plt.subplot(2, 1, 2)
+    plt.plot(history.history['loss'], label="Test Loss")
+    #plt.plot(testHistoryLoss, label="Train Loss")
+    plt.legend(loc='upper right')
+    plt.show()
+
+
+
+def rSquared(y_true, y_pred):
+    print(r2_score(y_true, y_pred))
 
 def rrm():
     print("Ridge regression model")
@@ -75,9 +98,18 @@ def neuralnetwork():
 
     dataset = core_weather["temp_max"]
     dataset_to_numpy = core_weather["temp_max"].to_numpy()
-    training_set = dataset_to_numpy[13550:48140]
+    #training_set = dataset_to_numpy[13550:48140]
+    training_set = dataset_to_numpy
+
+    training_set = np.array(training_set)
     training_set = training_set.reshape(-1, 1)
+    copy_set = training_set
+    print("training set \n")
     print(training_set)
+    print("training set \n")
+    print("data set \n")
+    print(dataset)
+    print("data set \n")
 
     #now the test data
 
@@ -89,8 +121,8 @@ def neuralnetwork():
     x_train = []
     y_train = []
 
-    n_future = 4  # next 4 hours
-    n_past = 30  # Past 30 hours
+    n_future = 8  # next 12 hours
+    n_past = 32  # Past 12 hours
 
     for i in range(0, len(training_set_scaled) - n_past - n_future + 1):
         x_train.append(training_set_scaled[i: i + n_past, 0])
@@ -100,36 +132,79 @@ def neuralnetwork():
 
     #here is our rnn model which uses training data provided to learn
 
-    regressor = Sequential()
-    regressor.add(Bidirectional(LSTM(units=30, return_sequences=True, input_shape=(x_train.shape[1], 1))))
-    regressor.add(Dropout(0.2))
-    regressor.add(LSTM(units=30, return_sequences=True))
-    regressor.add(Dropout(0.2))
-    regressor.add(LSTM(units=30, return_sequences=True))
-    regressor.add(Dropout(0.2))
-    regressor.add(LSTM(units=30))
-    regressor.add(Dropout(0.2))
-    regressor.add(Dense(units=n_future, activation='linear'))
-    regressor.compile(optimizer='adam', loss='mean_squared_error', metrics=['acc'])
-    regressor.fit(x_train, y_train, epochs=3, batch_size=32)
+    loadModel = False
+
+    if loadModel:
+        regressor = pickle.load(open('finalized_model.sav', 'rb'))
+        # now the test dataset
+        testdata = copy_set
+        real_temp = copy_set
+        testdata = testdata.reshape(-1, 1)
+        real_temp = real_temp.reshape(-1, 1)
+
+        testing = sc.transform(testdata)
+        testing = np.array(testing)
+        testing = np.reshape(testing, (testing.shape[1], testing.shape[0], 1))
+
+        predicted_temperature = regressor.predict(testing)
+        predicted_temperature = sc.inverse_transform(predicted_temperature)
+        predicted_temperature = np.reshape(predicted_temperature,
+                                           (predicted_temperature.shape[1], predicted_temperature.shape[0]))
+
+        print("real temp\n")
+        print(real_temp[-n_future:])
+        print("predicted temp\n")
+        print(predicted_temperature)
+
+        #print("kr nekaj?")
+        #result = regressor.score(x_train, y_train)
+        #print(result)
+
+    else:
+        regressor = Sequential()
+        regressor.add(Bidirectional(LSTM(units=30, return_sequences=True, input_shape=(x_train.shape[1], 1))))
+        regressor.add(Dropout(0.2))
+        regressor.add(LSTM(units=30, return_sequences=True))
+        regressor.add(Dropout(0.2))
+        regressor.add(LSTM(units=30, return_sequences=True))
+        regressor.add(Dropout(0.2))
+        regressor.add(LSTM(units=30))
+        regressor.add(Dropout(0.2))
+        regressor.add(Dense(units=n_future, activation='linear'))
+        regressor.compile(optimizer='adam', loss='mean_squared_error', metrics=['acc'])
+        history = regressor.fit(x_train, y_train, epochs=5, batch_size=32)
+
+        #saving the model
+        #filename = 'finalized_model.sav'
+        #pickle.dump(regressor, open(filename, 'wb'))
+
+        #print(f"model hist is : \n {history.history}")
+
+        #now the test dataset
+        testdata = copy_set
+        real_temp = copy_set
+        testdata = testdata.reshape(-1, 1)
+        real_temp = real_temp.reshape(-1, 1)
+
+        testing = sc.transform(testdata)
+        testing = np.array(testing)
+        testing = np.reshape(testing, (testing.shape[1], testing.shape[0], 1))
+
+        predicted_temperature = regressor.predict(testing)
+        predicted_temperature = sc.inverse_transform(predicted_temperature)
+        predicted_temperature = np.reshape(predicted_temperature,(predicted_temperature.shape[1],predicted_temperature.shape[0]))
+
+        print("real temp\n")
+        print(real_temp[-n_future:])
+        print("predicted temp\n")
+        print(predicted_temperature)
+
+        #evaluating model
+        rSquared(real_temp[-n_future:], predicted_temperature)
+        showData(history)
 
 
-    #now the test dataset
-    testdata = dataset_to_numpy
-    real_temp = dataset_to_numpy
-    testdata = testdata.reshape(-1, 1)
-    real_temp = real_temp.reshape(-1, 1)
 
-    testing = sc.transform(testdata)
-    testing = np.array(testing)
-    testing = np.reshape(testing, (testing.shape[1], testing.shape[0], 1))
-
-    predicted_temperature = regressor.predict(testing)
-    predicted_temperature = sc.inverse_transform(predicted_temperature)
-    predicted_temperature = np.reshape(predicted_temperature,(predicted_temperature.shape[1],predicted_temperature.shape[0]))
-
-    print(real_temp)
-    print(predicted_temperature)
 
 #rrm()
 neuralnetwork()
